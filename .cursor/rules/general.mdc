@@ -1,0 +1,74 @@
+---
+description: General project conventions for Pace Sync
+alwaysApply: true
+---
+
+# Project: Pace Sync
+
+Read `PROJECT.md` at the root before starting any work. It is the source of truth for what this app is and what it does. If anything in this file conflicts with PROJECT.md, follow PROJECT.md.
+
+
+
+## Stack
+
+- This project uses bun
+- Next.js 15 with App Router (no Pages Router)
+- TypeScript with strict mode enabled
+- Tailwind CSS for all styling
+- Supabase for database and auth
+- Spotify Web API for music data
+- Server Components by default, Client Components only when needed (state, effects, browser APIs)
+- Server Actions for mutations, not API routes, unless an external client needs the endpoint
+
+## Code style
+
+- Use named exports. Default exports only for `page.tsx`, `layout.tsx`, and `loading.tsx`
+- Use the `@/` import alias for anything outside the current directory
+- async/await, never `.then()` chains
+- Prefer `const` and arrow functions for components
+- Use `type` over `interface` unless declaration merging is needed
+- No `any`. Use `unknown` and narrow, or define the type
+- No `console.log` in committed code. Use a proper logger or remove
+- No magic strings for routes or env vars. Centralize them
+
+## File organization
+
+- `app/` for routes, layouts, and pages
+- `components/` for reusable UI
+- `components/ui/` for shadcn primitives
+- `lib/spotify/` for all Spotify Web API calls and OAuth helpers
+- `lib/arrangement/` for the pace and arrangement engine (pure functions, no I/O)
+- `lib/db/` for Supabase queries and mutations
+- `lib/types.ts` for shared domain types
+- `hooks/` for client-side React hooks
+
+## Feature specs
+
+Before implementing any feature larger than a small change, create a spec file.
+
+- Specs live in `/specs/` at the project root
+- One file per feature, named `NNN-feature-name.md` where NNN is a zero-padded sequence number (`001-spotify-auth.md`, `002-playlist-import.md`)
+- Reference the spec in the commit message and PR description for the feature
+
+Each spec includes these sections in this order:
+
+- **Overview**: one or two sentences on what this feature is and why it exists
+- **User flow**: the steps a user takes from start to finish
+- **Technical approach**: stack pieces involved, key functions or routes, data flow
+- **Data model**: any new types, database tables, or changes to existing ones
+- **Edge cases**: failure modes, empty states, rate limits, auth expiry
+- **Out of scope**: what this spec explicitly does not cover, so scope does not creep
+- **Acceptance criteria**: a checklist of what must be true for the feature to be done
+
+Keep specs short. A spec should fit on one screen. If a feature needs more than that, it should probably be split into multiple specs.
+
+When implementing a feature, read the spec first and follow it. If something in the spec turns out to be wrong, update the spec in the same commit as the code change. The spec and the code stay in sync.
+
+
+## Don't
+
+- Don't add a library without a clear reason. Check if Next, Tailwind, or shadcn already covers it
+- Don't put business logic in components. Lift it into `lib/`
+- Don't mix client and server code in the same file
+- Don't hardcode colors. Use Tailwind tokens
+- Don't comment out code. Delete it. Git remembers

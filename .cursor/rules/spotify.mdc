@@ -1,0 +1,24 @@
+---
+description: Spotify integration rules
+globs: lib/spotify/**/*.ts, app/api/spotify/**/*.ts, app/auth/**/*.ts
+---
+
+# Spotify integration
+
+## Auth
+
+- Authorization Code with PKCE only. Never use client credentials or implicit flow
+- Access tokens and refresh tokens stay server side. Never sent to the client
+- Use httpOnly, Secure, SameSite=Lax cookies for session
+- Refresh tokens automatically when expired. Clients should never see a 401
+
+## API calls
+
+- All Spotify calls live in `lib/spotify/`. No fetch to api.spotify.com from anywhere else
+- Wrap each endpoint in a typed function: `getUserPlaylists()`, `getPlaylistTracks(id)`, `searchTracks(q)`, `createPlaylist(name)`, `replacePlaylistTracks(id, uris)`
+- Handle Spotify rate limits (429). Read the Retry-After header and back off
+- Return typed results, not raw API responses. Map to the `Track` domain type
+
+## Scopes
+
+Request the minimum: `playlist-read-private`, `playlist-read-collaborative`, `playlist-modify-public`, `playlist-modify-private`. Don't ask for `user-library-modify` or anything broader.
