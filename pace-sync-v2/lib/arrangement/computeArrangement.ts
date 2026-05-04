@@ -1,4 +1,4 @@
-import type { ArrangementResult, RacePlan } from "@/lib/types";
+import type { ArrangementResult, TimelineRacePlan } from "@/lib/types";
 
 /**
  * Computes each track's start time within the race from the current plan.
@@ -7,7 +7,7 @@ import type { ArrangementResult, RacePlan } from "@/lib/types";
  * pacing, overlaps). This placeholder spaces starts evenly across the race and
  * honors explicit anchor seconds when set.
  */
-export const computeArrangement = (plan: RacePlan): ArrangementResult => {
+export const computeArrangement = (plan: TimelineRacePlan): ArrangementResult => {
   const { targetTimeSeconds, slots } = plan;
   const raceDurationSeconds = Math.max(1, Math.floor(targetTimeSeconds));
   const n = slots.length;

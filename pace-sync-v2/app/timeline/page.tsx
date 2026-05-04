@@ -4,7 +4,7 @@ import { TimelineEditor } from "@/components/timeline/timeline-editor";
 import { SyncPlaylistModal } from "@/components/sync-playlist-modal";
 import { Button } from "@/components/ui/button";
 import { createDefaultRacePlan, createTimelineSlotInstanceId } from "@/lib/timeline/defaultRacePlan";
-import type { RacePlan } from "@/lib/types";
+import type { TimelineRacePlan } from "@/lib/types";
 import {
   getPlaylistTracks,
   normalizeTrackUri,
@@ -36,7 +36,7 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
   }
 
   let trackUris: string[] = [];
-  let initialRacePlan: RacePlan | undefined;
+  let initialRacePlan: TimelineRacePlan | undefined;
   let loadError: string | null = null;
 
   try {

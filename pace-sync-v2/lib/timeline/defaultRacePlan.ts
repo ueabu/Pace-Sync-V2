@@ -1,4 +1,4 @@
-import type { RacePlan, Track } from "@/lib/types";
+import type { TimelineRacePlan, Track } from "@/lib/types";
 
 const demoTrack = (
   partial: Partial<Track> & Pick<Track, "id" | "name" | "durationMs">,
@@ -18,9 +18,9 @@ const createInstanceId = (): string => {
 export const createTimelineSlotInstanceId = createInstanceId;
 
 /** Demo arrangement when no playlist is loaded (e.g. future direct /timeline entry). */
-export const createDefaultRacePlan = (): RacePlan => ({
+export const createDefaultRacePlan = (): TimelineRacePlan => ({
   distanceValue: 10,
-  distanceUnit: "km",
+  distanceUnit: 'km',
   targetTimeSeconds: 60 * 55,
   slots: [
     {

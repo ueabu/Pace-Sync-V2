@@ -4,10 +4,10 @@ import { RaceDetailsBar } from "@/components/timeline/race-details-bar";
 import { TimelineCanvas } from "@/components/timeline/timeline-canvas";
 import { TimelineEditorProvider } from "@/components/timeline/timeline-context";
 import { TrackSearch } from "@/components/timeline/track-search";
-import type { RacePlan } from "@/lib/types";
+import type { TimelineRacePlan } from "@/lib/types";
 
 type Props = {
-  initialRacePlan?: RacePlan;
+  initialRacePlan?: TimelineRacePlan;
 };
 
 export const TimelineEditor = ({ initialRacePlan }: Props) => {

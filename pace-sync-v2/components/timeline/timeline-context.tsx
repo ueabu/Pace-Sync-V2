@@ -3,15 +3,20 @@
 import { createContext, useMemo, useState, type ReactNode } from "react";
 import { computeArrangement } from "@/lib/arrangement/computeArrangement";
 import { createDefaultRacePlan, createTimelineSlotInstanceId } from "@/lib/timeline/defaultRacePlan";
-import type { RacePlan, TimelineEditorSnapshot, TimelineSlot, Track } from "@/lib/types";
+import type {
+  TimelineEditorSnapshot,
+  TimelineRacePlan,
+  TimelineSlot,
+  Track,
+} from "@/lib/types";
 
 export { createDefaultRacePlan, createTimelineSlotInstanceId };
 
 export type TimelineEditorContextValue = {
-  racePlan: RacePlan;
+  racePlan: TimelineRacePlan;
   snapshot: TimelineEditorSnapshot;
   setDistanceValue: (value: number) => void;
-  setDistanceUnit: (unit: RacePlan["distanceUnit"]) => void;
+  setDistanceUnit: (unit: TimelineRacePlan["distanceUnit"]) => void;
   setTargetTimeSeconds: (seconds: number) => void;
   reorderSlots: (slotIds: string[]) => void;
   toggleAnchorForSlot: (instanceId: string) => void;
@@ -23,14 +28,14 @@ export const TimelineEditorContext = createContext<TimelineEditorContextValue | 
 
 type ProviderProps = {
   children: ReactNode;
-  initialRacePlan?: RacePlan;
+  initialRacePlan?: TimelineRacePlan;
 };
 
 export const TimelineEditorProvider = ({
   children,
   initialRacePlan = createDefaultRacePlan(),
 }: ProviderProps) => {
-  const [racePlan, setRacePlan] = useState<RacePlan>(initialRacePlan);
+  const [racePlan, setRacePlan] = useState<TimelineRacePlan>(initialRacePlan);
 
   const arrangement = useMemo(() => computeArrangement(racePlan), [racePlan]);
 
