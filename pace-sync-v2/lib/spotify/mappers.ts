@@ -10,6 +10,7 @@ export type SpotifyTrackish = {
   name?: string;
   duration_ms?: number;
   artists?: SpotifyArtistRef[];
+  album?: { images?: Array<{ url?: string } | null> | null } | null;
 };
 
 export type SpotifyPaging<T> = {
@@ -47,11 +48,15 @@ export function mapSpotifyTrackToTrack(
     raw.artists
       ?.map((a) => a?.name ?? "")
       .filter((namePart) => namePart.length > 0) ?? [];
+  const albumArtUrl = raw.album?.images
+    ?.map((im) => im?.url?.trim())
+    .find((u) => u && u.length > 0);
   return {
     id: raw.id,
     name,
     artists,
     durationMs: raw.duration_ms,
+    albumArtUrl: albumArtUrl || undefined,
   };
 }
 
