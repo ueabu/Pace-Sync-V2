@@ -6,6 +6,7 @@ export type Track = {
   name: string;
   artists: string[];
   durationMs: number;
+  albumArtUrl?: string;
 };
 
 /** A user's playlist from Spotify listings (import / picker workstreams). */
@@ -22,11 +23,47 @@ export type PlaylistSummary = {
   coverUrl?: string;
 };
 
+export type DistanceUnit = 'km' | 'mi';
+
+export type TimelineSlot = {
+  instanceId: string;
+  track: Track;
+  anchorSeconds: number | null;
+};
+
+/** Timeline editor model: ordered slots with optional per-slot anchors. */
+export type TimelineRacePlan = {
+  distanceValue: number;
+  distanceUnit: DistanceUnit;
+  targetTimeSeconds: number;
+  slots: TimelineSlot[];
+};
+
+/** Layout row for the timeline UI (playback order with instance identity). */
+export type TimelineArrangedTrack = {
+  trackId: string;
+  instanceId: string;
+  startSeconds: number;
+  durationMs: number;
+};
+
+export type ArrangementResult = {
+  raceDurationSeconds: number;
+  tracks: TimelineArrangedTrack[];
+};
+
+export type TimelineEditorSnapshot = {
+  racePlan: TimelineRacePlan;
+  arrangement: ArrangementResult;
+};
+
+/** Pin for the pure arrangement engine ({@link computeArrangement} in `lib/arrangement`). */
 export type Anchor = {
   trackId: string;
   targetSecond: number;
 };
 
+/** Engine race plan: metric distance, explicit track order, anchors. See PROJECT.md glossary. */
 export type RacePlan = {
   distanceMeters: number;
   targetTimeSeconds: number;

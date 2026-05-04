@@ -1,7 +1,10 @@
 import Link from "next/link";
 
+import { TimelineEditor } from "@/components/timeline/timeline-editor";
 import { SyncPlaylistModal } from "@/components/sync-playlist-modal";
 import { Button } from "@/components/ui/button";
+import { createDefaultRacePlan, createTimelineSlotInstanceId } from "@/lib/timeline/defaultRacePlan";
+import type { TimelineRacePlan } from "@/lib/types";
 import {
   getPlaylistTracks,
   normalizeTrackUri,
@@ -33,6 +36,7 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
   }
 
   let trackUris: string[] = [];
+  let initialRacePlan: TimelineRacePlan | undefined;
   let loadError: string | null = null;
 
   try {
@@ -40,6 +44,14 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
       collectAllPages: true,
     });
     trackUris = tracks.map((t) => normalizeTrackUri(t));
+    initialRacePlan = {
+      ...createDefaultRacePlan(),
+      slots: tracks.map((track) => ({
+        instanceId: createTimelineSlotInstanceId(),
+        track,
+        anchorSeconds: null,
+      })),
+    };
   } catch (err) {
     if (err instanceof SpotifyAuthRequiredError) {
       loadError =
@@ -82,16 +94,13 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
         </div>
       </div>
 
-      <section
-        aria-label="Timeline canvas placeholder"
-        className="flex min-h-[12rem] flex-col justify-center rounded-lg border border-dashed border-stone-300 bg-stone-50/80 px-4 py-10 text-center sm:min-h-[18rem]"
-      >
-        <p className="mx-auto max-w-md text-sm leading-relaxed text-stone-700">
-          The timeline canvas lives here in a parallel workstream—blocks, drag and drop,
-          and race clock will mount in this frame. Your tracks are ready below for when
-          that lands.
-        </p>
-      </section>
+      {loadError ? (
+        <p className="text-sm text-amber-800 dark:text-amber-300">{loadError}</p>
+      ) : initialRacePlan ? (
+        <div className="flex min-h-[min(100dvh,48rem)] min-w-0 flex-col overflow-hidden rounded-lg border border-stone-200 bg-background dark:border-stone-800">
+          <TimelineEditor initialRacePlan={initialRacePlan} />
+        </div>
+      ) : null}
     </div>
   );
 }
