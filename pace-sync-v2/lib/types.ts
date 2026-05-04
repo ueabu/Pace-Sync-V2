@@ -18,4 +18,6 @@ export type PlaylistSummary = {
   collaborative: boolean;
   totalTracks: number;
   href?: string;
+  /** First cover image from Spotify listing, when present. */
+  coverUrl?: string;
 };

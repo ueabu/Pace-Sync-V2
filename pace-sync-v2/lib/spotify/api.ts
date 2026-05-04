@@ -104,6 +104,21 @@ export async function getUserPlaylists(
   };
 }
 
+export async function getAllUserPlaylists(): Promise<PlaylistSummary[]> {
+  const all: PlaylistSummary[] = [];
+  let offset = 0;
+  const limit = 50;
+  for (;;) {
+    const page = await getUserPlaylists({ limit, offset });
+    all.push(...page.playlists);
+    if (!page.nextPageUrl || page.playlists.length === 0) {
+      break;
+    }
+    offset += page.playlists.length;
+  }
+  return all;
+}
+
 export async function getPlaylistTracks(
   playlistId: string,
   opts?: Partial<{
