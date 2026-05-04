@@ -1,20 +1,19 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { SyncPlaylistModal } from "@/components/sync-playlist-modal";
-import { getSession } from "@/lib/auth/session";
-import { getPlaylistTrackUris, SpotifyApiError } from "@/lib/spotify";
+import { Button } from "@/components/ui/button";
+import {
+  getPlaylistTracks,
+  normalizeTrackUri,
+  SpotifyAuthRequiredError,
+  SpotifyRateLimitWaitingError,
+} from "@/lib/spotify";
 
 type TimelinePageProps = {
   searchParams: Promise<{ playlistId?: string; playlistName?: string }>;
 };
 
 export default async function TimelinePage({ searchParams }: TimelinePageProps) {
-  const session = await getSession();
-  if (!session) {
-    return null;
-  }
-
   const params = await searchParams;
   const playlistId = params.playlistId?.trim();
   const playlistName = params.playlistName?.trim() ?? "This playlist";
@@ -37,12 +36,19 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
   let loadError: string | null = null;
 
   try {
-    trackUris = await getPlaylistTrackUris(session.accessToken, playlistId);
+    const { tracks } = await getPlaylistTracks(playlistId, {
+      collectAllPages: true,
+    });
+    trackUris = tracks.map((t) => normalizeTrackUri(t));
   } catch (err) {
-    loadError =
-      err instanceof SpotifyApiError
-        ? "Could not read that playlist from Spotify."
-        : "Something went wrong loading tracks.";
+    if (err instanceof SpotifyAuthRequiredError) {
+      loadError =
+        "Your Spotify session expired. Connect again from the home page.";
+    } else if (err instanceof SpotifyRateLimitWaitingError) {
+      loadError = "Spotify rate limited this request. Wait a moment and try again.";
+    } else {
+      loadError = "Something went wrong loading tracks.";
+    }
   }
 
   return (

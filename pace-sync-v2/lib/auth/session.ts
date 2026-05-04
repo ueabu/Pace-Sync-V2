@@ -1,33 +1,10 @@
-import { cookies } from "next/headers";
+import { hasSpotifySessionCookie } from "@/lib/spotify/session";
 
-export const SESSION_COOKIE_NAME = "pacelist_session";
-
-export type PacelistSession = {
-  accessToken: string;
-  user: {
-    id: string;
-    display_name?: string;
-  };
-};
-
-export async function getSession(): Promise<PacelistSession | null> {
-  const jar = await cookies();
-  const raw = jar.get(SESSION_COOKIE_NAME)?.value;
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as PacelistSession;
-    if (
-      typeof parsed.accessToken !== "string" ||
-      !parsed.user ||
-      typeof parsed.user.id !== "string"
-    ) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
+/**
+ * Returns true when the httpOnly Spotify session cookie is present and readable.
+ * Call sites that need an access token should use `getSpotifyAccessToken()` from
+ * `@/lib/spotify/session` (or helpers in `@/lib/spotify/api`) so tokens refresh.
+ */
+export async function isLoggedIn(): Promise<boolean> {
+  return hasSpotifySessionCookie();
 }

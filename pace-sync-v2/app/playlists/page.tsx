@@ -1,25 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { getSession } from "@/lib/auth/session";
-import { listUserPlaylists, SpotifyApiError } from "@/lib/spotify";
+import {
+  getAllUserPlaylists,
+  SpotifyAuthRequiredError,
+  SpotifyRateLimitWaitingError,
+} from "@/lib/spotify";
 
 export default async function PlaylistsPage() {
-  const session = await getSession();
-  if (!session) {
-    return null;
-  }
-
-  let playlists: Awaited<ReturnType<typeof listUserPlaylists>> = [];
+  let playlists: Awaited<ReturnType<typeof getAllUserPlaylists>> = [];
   let loadError: string | null = null;
 
   try {
-    playlists = await listUserPlaylists(session.accessToken);
+    playlists = await getAllUserPlaylists();
   } catch (err) {
-    loadError =
-      err instanceof SpotifyApiError
-        ? "Spotify returned an error. Try reconnecting your account."
-        : "Could not load playlists.";
+    if (err instanceof SpotifyAuthRequiredError) {
+      loadError = "Your Spotify session expired. Connect again from the home page.";
+    } else if (err instanceof SpotifyRateLimitWaitingError) {
+      loadError = "Spotify rate limited this request. Wait a moment and try again.";
+    } else {
+      loadError = "Could not load playlists.";
+    }
   }
 
   return (
@@ -45,7 +46,7 @@ export default async function PlaylistsPage() {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {playlists.map((p) => {
-            const cover = p.images[0]?.url;
+            const cover = p.coverUrl;
             const href = `/timeline?playlistId=${encodeURIComponent(p.id)}&playlistName=${encodeURIComponent(p.name)}`;
             return (
               <li key={p.id}>
@@ -71,7 +72,7 @@ export default async function PlaylistsPage() {
                   <div className="min-w-0 flex-1 py-0.5">
                     <p className="truncate font-medium text-foreground">{p.name}</p>
                     <p className="text-sm text-stone-600">
-                      {p.tracks.total} track{p.tracks.total === 1 ? "" : "s"}
+                      {p.totalTracks} track{p.totalTracks === 1 ? "" : "s"}
                     </p>
                   </div>
                 </Link>

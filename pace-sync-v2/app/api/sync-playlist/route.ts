@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { getSession } from "@/lib/auth/session";
-import { SpotifyApiError } from "@/lib/spotify";
 import {
-  createPlaylistWithTracks,
+  createPlaylist,
   replacePlaylistTracks,
-} from "@/lib/spotify/sync";
+  normalizeTrackUri,
+} from "@/lib/spotify/api";
+import {
+  SpotifyAuthRequiredError,
+  SpotifyRateLimitWaitingError,
+} from "@/lib/spotify/errors";
 
 type SyncBody = {
   mode?: string;
@@ -14,12 +17,14 @@ type SyncBody = {
   trackUris?: unknown;
 };
 
-export async function POST(request: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+function normalizedUris(raw: unknown): string[] | null {
+  if (!Array.isArray(raw) || !raw.every((u) => typeof u === "string")) {
+    return null;
   }
+  return raw.map((u) => normalizeTrackUri(u));
+}
 
+export async function POST(request: Request) {
   let body: SyncBody;
   try {
     body = (await request.json()) as SyncBody;
@@ -27,8 +32,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const uris = body.trackUris;
-  if (!Array.isArray(uris) || !uris.every((u) => typeof u === "string")) {
+  const uris = normalizedUris(body.trackUris);
+  if (!uris) {
     return NextResponse.json({ error: "Invalid track URIs" }, { status: 400 });
   }
 
@@ -38,15 +43,15 @@ export async function POST(request: Request) {
       if (!name) {
         return NextResponse.json({ error: "Name required" }, { status: 400 });
       }
-      const created = await createPlaylistWithTracks(
-        session.accessToken,
-        session.user.id,
+      const created = await createPlaylist({
         name,
-        uris,
-      );
+        isPublic: false,
+        description: "Created by Pacelist",
+      });
+      await replacePlaylistTracks(created.id, uris);
       return NextResponse.json({
         playlistId: created.id,
-        spotifyUrl: created.external_urls.spotify,
+        spotifyUrl: `https://open.spotify.com/playlist/${created.id}`,
       });
     }
 
@@ -56,7 +61,7 @@ export async function POST(request: Request) {
       if (!playlistId) {
         return NextResponse.json({ error: "playlistId required" }, { status: 400 });
       }
-      await replacePlaylistTracks(session.accessToken, playlistId, uris);
+      await replacePlaylistTracks(playlistId, uris);
       return NextResponse.json({
         playlistId,
         spotifyUrl: `https://open.spotify.com/playlist/${playlistId}`,
@@ -65,12 +70,18 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "Invalid mode" }, { status: 400 });
   } catch (err) {
-    if (err instanceof SpotifyApiError) {
+    if (err instanceof SpotifyAuthRequiredError) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (err instanceof SpotifyRateLimitWaitingError) {
       return NextResponse.json(
-        { error: "Spotify rejected this request." },
-        { status: 502 },
+        { error: "Spotify rate limited this request. Try again shortly." },
+        { status: 429 },
       );
     }
-    throw err;
+    return NextResponse.json(
+      { error: "Spotify rejected this request." },
+      { status: 502 },
+    );
   }
 }

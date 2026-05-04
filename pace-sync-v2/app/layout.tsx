@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
-import { getSession } from "@/lib/auth/session";
+import { isLoggedIn } from "@/lib/auth/session";
 
 import "./globals.css";
 
@@ -27,7 +27,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getSession();
+  const authenticated = await isLoggedIn();
 
   return (
     <html
@@ -35,7 +35,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell authenticated={!!session}>{children}</AppShell>
+        <AppShell authenticated={authenticated}>{children}</AppShell>
         <Toaster
           position="top-center"
           toastOptions={{

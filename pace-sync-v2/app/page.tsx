@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { ConnectSpotifyButton } from "@/components/connect-spotify-button";
 import { Button } from "@/components/ui/button";
-import { getSession } from "@/lib/auth/session";
+import { isLoggedIn } from "@/lib/auth/session";
 
 export default async function HomePage() {
-  const session = await getSession();
+  const loggedIn = await isLoggedIn();
 
   return (
     <div className="flex flex-col gap-10 pb-16 pt-6 sm:pt-12">
@@ -23,7 +23,7 @@ export default async function HomePage() {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        {session ? (
+        {loggedIn ? (
           <Button asChild size="lg" className="w-full sm:w-auto">
             <Link href="/playlists">Open your playlists</Link>
           </Button>
