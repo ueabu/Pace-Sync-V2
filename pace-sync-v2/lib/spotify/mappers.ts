@@ -31,6 +31,7 @@ export type SpotifyPlaylistListingItem = {
   uri: string;
   href?: string;
   tracks?: { total: number } | null;
+  images?: Array<{ url?: string }> | null;
 };
 
 export type SpotifyPlaylistTrackRow = {
@@ -83,6 +84,7 @@ export function mapSpotifyPlaylistToSummary(
     collaborative: !!p.collaborative,
     totalTracks,
     href: p.href,
+    coverUrl: p.images?.[0]?.url,
   };
 }
 
